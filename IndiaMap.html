@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title> Map Hover </title>
+	<script type="text/javascript" src="d3.v3.min.js"></script>
+	<!--<style>
+		.area:hover {
+			fill: red;
+		}
+	</style>-->
+</head>
+
+<body>
+
+ 
+	<script> 
+
+		var width = 760;
+		var height = 700;
+		padding = 50;
+
+		var color = d3.scale.category20b(); // function provides with 10 different color
+
+		var canvas = d3.select("body").append("svg")
+				.attr("width",width)
+				.attr("height",height);
+
+		d3.json("india_states.geojson", function (data) {
+
+			var group =  canvas.selectAll("g")
+				.data(data.features)
+				.enter()
+				.append("g")
+
+
+			var projection = d3.geo.mercator().scale(1320).translate([-1550,880]);
+			var path = d3.geo.path().projection(projection);
+
+			var areas = group.append("path")
+				.attr("d", path)
+				.attr("class","area")
+				//.attr("fill",function (d) {return color(d.properties.NAME_1);})
+				.attr("id" , function (d) { return d.properties.ID_1;})
+				.attr("fill", "none")
+				.attr("stroke" , "black")
+				.attr("stroke-width" , "1")
+				.on("mouseover", function() { 
+					d3.select(this).
+					attr("fill", function (d) {return color(d.properties.NAME_1);});
+
+					// d3.select(this)
+					// .append("text")
+					// .attr("x", function (d) { return path.centroid(d) [0] ;})
+					// .attr("y", function (d) { return path.centroid(d) [1] ;})
+					// .attr("font-size",".7em")
+					// .attr("color","white")
+					// .attr("text-anchor","middle")
+					// .text(function (d) {return d.properties.NAME_1; })
+
+				}) //runningSlow //need topoJson to speedup Event Listener
+				.on("mouseout", function() { 
+					d3.select(this)
+					.attr("fill", "none");
+
+					// d3.select(this)
+					// .append("text")
+					// .attr("x", function (d) { return path.centroid(d) [0] ;})
+					// .attr("y", function (d) { return path.centroid(d) [1] ;})
+					// .attr("font-size",".7em")
+					// .attr("color","white")
+					// .attr("text-anchor","middle")
+					// .text("")
+				}); 
+				
+							
+
+
+			group.append("text")
+				.attr("x", function (d) { return path.centroid(d) [0] ;})
+				.attr("y", function (d) { return path.centroid(d) [1] ;})
+				.attr("font-size",".7em")
+				.attr("color","white")
+				.attr("text-anchor","middle")
+				.text(function (d) {return d.properties.NAME_1; })
+
+		})
+			
+
+	</script>
+
+</body>
+
+</html>
