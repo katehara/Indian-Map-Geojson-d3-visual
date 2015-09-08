@@ -4,11 +4,27 @@
 <head>
 	<title> States on Checkbox </title>
 	<script type="text/javascript" src="d3.v3.min.js"></script>
-	<!--<style>
-		.area:hover {
-			fill: red;
+	<style>
+		/*.legend {
+			display: inline;
+			min-height: 100%;
+			max-width: 35%;
 		}
-	</style>-->
+
+		.visual {
+			display: inline;
+			min-height: 100%;
+			max-width: 65%;
+		}*/
+
+		div {
+			z-index: 10;  
+			position: absolute;  
+			right: 0;  
+			top: 0;
+		}
+		
+	</style>
 </head>
 
 <body>
@@ -22,14 +38,17 @@
 
 		var color = d3.scale.category20c(); // function provides with 10 different color
 
-		var box = d3.select("body").append("div")
-				.attr("width",width/2)
-				.attr("height",width);
+		
 
 		var canvas = d3.select("body").append("svg")
-				.attr("width",width)
-				.attr("height",height)
-				//.attr("transform","translate(500,0)");;
+					.attr("display" , "inline")
+					.attr("width",width)
+					.attr("height",height);
+
+		var box = d3.select("body").append("div")
+				.attr("display" , "inline")
+				.attr("width",width/3)
+				.attr("height",height);
 
 		
 
@@ -56,13 +75,14 @@
 							
 
 
-			var checks = box.selectAll("input")
+			var checks = box.selectAll("label")
 				.data(data.features)
 				.enter()
 				.append('label')
     				.attr('for',function (d) { return d.properties.ID_1;})
 					.text(function (d) {return d.properties.NAME_1; })
 					.attr("color","black")
+					.style("display" , "block")
 				.append("input")
 					.attr("type", "checkbox")
 					.attr("class", "scheck")
@@ -71,11 +91,13 @@
 						var it = "#s" + this.id;
 						if(this.checked){
 							d3.select(it)
-							.attr("fill", function (d) {return color(it);});
+							.attr("fill", function (d) {return color(this.id);})
+							.attr("stroke" , function (d) {return color(this.id);});
 						}
 						else {
 							d3.select(it)
-							.attr("fill", "none");
+							.attr("fill", "none")
+							.attr("stroke" , "black");
 						}
 					});
 
