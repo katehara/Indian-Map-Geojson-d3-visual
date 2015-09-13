@@ -2,7 +2,7 @@
 <html>
 
 <head>
-	<title> States Appear on Checkbox </title>
+	<title> Zoned States </title>
 	<script type="text/javascript" src="d3.v3.min.js"></script>
 	<style>
 		/*.legend {
@@ -20,7 +20,7 @@
 		div {
 			z-index: 10;  
 			position: absolute;  
-			right: 0;  
+			left: 0;  
 			top: 0;
 		}
 		
@@ -38,17 +38,18 @@
 
 		var color = d3.scale.category20c(); // function provides with 10 different color
 
-		
+		var box = d3.select("body").append("div")
+				.attr("display" , "inline")
+				.attr("width",width/3)
+				.attr("height",height);
+				
 
 		var canvas = d3.select("body").append("svg")
 					.attr("display" , "inline")
 					.attr("width",width)
 					.attr("height",height);
 
-		var box = d3.select("body").append("div")
-				.attr("display" , "inline")
-				.attr("width",width/3)
-				.attr("height",height);
+		
 
 		
 
@@ -65,34 +66,60 @@
 
 			var areas = group.append("path")
 				.attr("d", path)
-				.attr("class","area")
+				.attr("class",function (d) { return "z"+d.properties.ZONE;})
 				//.attr("fill",function (d) {return color(d.properties.NAME_1);})
 				.attr("id" , function (d) { return "s"+d.properties.ID_1;})
 				.attr("fill", "none")
-				.attr("stroke" , "white")
+				.attr("stroke" , "black")
 				.attr("stroke-width" , "1");
-				
+
+			group.append("text")
+				.attr("x", function (d) { return path.centroid(d) [0] ;})
+				.attr("y", function (d) { return path.centroid(d) [1] ;})
+				.attr("font-size",".7em")
+				.attr("color","black")
+				.attr("text-anchor","middle")
+				.text(function (d) {return d.properties.NAME_1; });
+			
 							
 
 
 			var checks = box.selectAll("label")
-				.data(data.features)
+				.data([1,2,3,4,5,6])
 				.enter()
 				.append('label')
-    				.attr('for',function (d) { return d.properties.ID_1;})
-					.text(function (d) {return d.properties.NAME_1; })
-					.attr("color","white")
+   				.attr('for',function (d) { return d;})
+					.text(function (d) { 
+						switch(d){
+							case 1 : return"North"
+							break;
+							case 2 : return"East"
+							break;
+							case 3 : return"West"
+							break;
+							case 4 : return"South"
+							break;
+							case 5 : return"Central"
+							break;
+							case 6 : return"North-East"
+							break;
+
+						}
+
+					
+					})
+					.attr("color","black")
 					.style("display" , "block")
 				.append("input")
 					.attr("type", "checkbox")
 					.attr("class", "scheck")
-					.attr("id",function (d) { return d.properties.ID_1;})
+					.attr("id",function (d) { return d;})
 					.on("change", function() {
-						var it = "#s" + this.id;
+						var it = ".z" + this.id;
 						if(this.checked){
-							d3.select(it)
-							.attr("fill", function (d) {return color(this.id);})
-							.attr("stroke" , function (d) {return color(this.id);});
+							d3.selectAll(it)
+							.attr("fill", function (d) {return color(it);})
+							.attr("stroke" , function (d) {return color(it);});
 							// .append("text")
 							// 	.attr("x", function (d) { return path.centroid(d) [0] ;})
 							// 	.attr("y", function (d) { return path.centroid(d) [1] ;})
@@ -102,9 +129,9 @@
 							// 	.text(function (d) {return d.properties.NAME_1; });
 						}
 						else {
-							d3.select(it)
+							d3.selectAll(it)
 							.attr("fill", "none")
-							.attr("stroke" , "white");
+							.attr("stroke" , "black");
 						}
 					});
 
