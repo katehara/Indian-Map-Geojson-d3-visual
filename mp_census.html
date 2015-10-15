@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title> Madhya Pradesh Stats </title>
+	<script type="text/javascript" src="d3.v3.min.js"></script>
+	<style>
+		
+		.states {
+			width: 20%;
+			height: 95%;
+			overflow: auto;
+			z-index: 10;  
+			position: absolute;  
+			right: 0;  
+			top: 0;
+		}
+
+		.map {
+			width: 55%;
+			height: 105%;
+			overflow: auto;
+			position: absolute;
+			left : 0;
+			top: 0;
+		}
+
+		.features{
+			display: none;
+			width: 25%;
+			height: 25%;
+			overflow: auto;
+			position: absolute;
+			left : 60%;
+			top: 0;
+		}
+
+		.pies{
+			display: none;
+			width: 20%;
+			height: 75%;
+			overflow: auto;
+			position: absolute;
+			left : 60%;
+			top: 25%;
+		}
+
+		
+	</style>
+</head>
+
+<body>
+
+ 
+	<script> 
+	var mapBox = d3.select("body")
+					.append("div");
+								
+
+	var legendBox = d3.select("body")
+					.append("div")
+					.attr("class" , "features");
+					
+
+	legendBox.append("div")
+		.attr("position" , "absolute")
+		.attr("bottom" , 0)
+		.attr("margin" , 0)
+		.attr("align" , "left")
+		.append("p")
+		.append("u")
+		.append("b")
+		.text("Select Feature");
+
+
+	var charts = d3.select("body")
+					.append("div")
+					.attr("class" , "pies");
+
+	var box = d3.select("body")
+				.append("div")
+				.attr("class" , "states");
+
+
+	var color = d3.scale.category20c(); // function provides with 10 different color
+
+	var r =65;
+
+	var pclr = d3.scale.ordinal()
+				.range(["#a9d4a7" , "#4c93b1"]);
+
+	var lable = d3.scale.ordinal()
+				.range(["2001","2011"]);
+
+
+
+
+	d3.json("mp.json" , function(data){	
+
+			var arc = d3.svg.arc()
+				.innerRadius(0) // PIE CHART if innerRadius = 0; :P
+				.outerRadius(r);
+				// .startAngle(0);
+				//.endAngle(p);
+
+			var pie = d3.layout.pie()
+				.value(function (d) { return d; });
+
+
+			var radios = legendBox.selectAll("label")
+				.data([0,1,2,3])
+				.enter()
+				.append('label')
+    				.attr('for',function (d) { return d;})
+					.text(function (d) {
+
+						if(d==0) return "Literates";
+						else if(d==1) return "Work Participation";
+						else if(d==2) return "Sex Ratio";
+						else if(d==3) return "Literacy Ratio";
+
+					 })
+					.attr("color","black")
+					.style("display" , "block")
+				.append("input")
+					.attr("type", "radio")
+					.attr("name", "feat")
+					.attr("id",function (d) { return d;})
+					.property("checked", function(d) { 
+				        return (d==0); 
+				    })
+					.on("change", function() {
+						if(this.checked){
+							var it = this.id;
+							plot(it);
+						}
+						else {
+							var it = this.id;
+							// console.log(this.checked);
+							// if(it!=0) return d3.select("#"+it).attr("checked", "false");
+							// if(it!=1) return d3.select("#"+it).attr("checked", "false");
+							// if(it!=2) return d3.select("#"+it).attr("checked", "false");
+							// if(it!=3) return d3.select("#"+it).attr("checked", "false");
+							
+						}
+					});
+
+
+
+			function plot(i) {
+
+				d3.select(".pies").selectAll("svg").remove();
+				d3.select(".pies").selectAll("div").remove();
+
+
+				for (j in [0,1,2]) {
+
+					c = charts.append("svg")//.attr("display","block")
+						.attr("width","100%")
+						.attr("height",2*r);
+
+					var arcs = c.selectAll(".arc")
+						.data(pie(data.features[i][j]))
+						.enter()
+						.append("g")
+						.attr("transform","translate("+r+", "+r+")")
+						.attr("class", "arc");
+
+					arcs.append("path")
+					 	.attr("d", arc)
+					 	.attr("fill", function(d) { return pclr(d.data);});
+
+					arcs.append("text")
+					 	.attr("transform", function(d) {return "translate(" + arc.centroid(d) + ")";})
+					 	.attr("text-anchor","middle")
+					 	.attr("font-size", "1.2em")
+					 	.text(function (d) { return lable(d.data) ;});
+					 	//console.log(j);
+					charts.append("div")
+						.attr("position" , "absolute")
+						.attr("bottom" , 0)
+						.attr("margin" , 0)
+						.attr("align" , "center")
+						.append("p")
+						.text(function(){
+
+							if(i !=2){
+								if(j==0) return "Total";
+								else if(j==1) return "Male";
+								else if(j==2) return "Female";
+							}
+							else if(i == 2){
+								if(j==0) return "Total";
+								else if(j==1) return "Rural";
+								else if(j==2) return "Urban";
+							}
+						});
+				}
+			}
+
+			plot(0);
+		});
+
+
+
+
+
+
+	
+
+		d3.json("india_states.geojson", function (data) {
+
+			var group =  mapBox.append("svg")
+					.attr("class" , "map")
+				.selectAll("g")
+				.data(data.features)
+				.enter()
+				.append("g")
+
+
+			var projection = d3.geo.mercator().scale(1320).translate([-1550,880]);
+			var path = d3.geo.path().projection(projection);
+
+			var areas = group.append("path")
+				.attr("d", path)
+				.attr("class","area")
+				//.attr("fill",function (d) {return color(d.properties.NAME_1);})
+				.attr("id" , function (d) { return "s"+d.properties.ID_1;})
+				.attr("fill", "none")
+				.attr("stroke" , "black")
+				.attr("stroke-width" , "1");
+				
+							
+
+
+			var checks = box.selectAll("label")
+				.data(data.features)
+				.enter()
+				.append('label')
+    				.attr('for',function (d) { return d.properties.ID_1;})
+					.text(function (d) {return d.properties.NAME_1; })
+					.attr("color","black")
+					.style("display" , "block")
+				.append("input")
+					.attr("type", "checkbox")
+					.attr("class", "scheck")
+					.attr("id",function (d) { return d.properties.ID_1;})
+					.on("change", function() {
+						var it = "#s" + this.id;
+						if(this.checked){
+
+							d3.select(it)
+							.attr("fill", function (d) {return color(this.id);})
+							.attr("stroke" , function (d) {return color(this.id);});
+
+							if(this.id=="20"){
+								console.log("yes");
+								d3.select(".features").style("display" , "inline-block");
+								d3.select(".pies").style("display" , "inline-block");
+
+							}
+						}
+						else {
+							d3.select(it)
+							.attr("fill", "none")
+							.attr("stroke" , "black");
+							if(this.id=="20"){
+								console.log("no");
+								d3.select(".features").style("display" , "none");
+								d3.select(".pies").style("display" , "none");
+
+							}
+						}
+
+					});
+
+		})
+
+
+	</script>
+
+</body>
+
+</html>
